@@ -11,7 +11,6 @@ Decisiones de diseño:
     evitando que la inferencia bloquee el event loop.
 """
 
-import io
 import cv2
 from pathlib import Path
 import numpy as np
@@ -25,7 +24,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 
 from explainability import GradCAM
-from model import RetinaModel, ModelConfig, make_model
+from model import RetinaModel, make_model
 from preprocessing import RetinaPreprocessor, PreprocessConfig
 
 

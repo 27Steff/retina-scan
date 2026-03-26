@@ -88,7 +88,7 @@ EfficientNet-B0 was pretrained on ImageNet. Training proceeds in two phases:
 
 **Phase 1 (3 epochs)**: only the classification head is trained. Learning rate: 1e-3. The backbone remains frozen: this prevents the ImageNet weights from being destroyed before the new head has learned a useful signal.
 
-**Phase 2 (7 epochs)**: full model fine-tuning with a lower learning rate (1e-4). CosineAnnealingLR gradually reduces the learning rate across the phase. Early stopping with patience 3 monitors validation kappa and saves the best checkpoint.
+**Phase 2 (7 epochs)**: full model fine-tuning with a lower learning rate (1e-5). CosineAnnealingLR gradually reduces the learning rate across the phase. Early stopping with patience 3 monitors validation kappa and saves the best checkpoint.
 
 ### Grad-CAM implementation
 
@@ -135,13 +135,13 @@ pip install -r requirements.txt
 
 ```bash
 mkdir -p checkpoints
-wget https://huggingface.co/SteffanyR/retina-scan/resolve/main/best_model.pt -O checkpoints/best_model.pt
+curl -L https://huggingface.co/SteffanyR/retina-scan/resolve/main/best_model.pt -o checkpoints/best_model.pt
 ```
 
 ### SAM weights
 
 ```bash
-wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth
+curl -L https://dl.fbaipublicfiles.com/segment_anything/sam_vit_b_01ec64.pth -o sam_vit_b_01ec64.pth
 ```
 
 ### Dataset
@@ -168,14 +168,19 @@ Default configuration uses EfficientNet-B0, image size 224, batch size 4: suitab
 Training output:
 
 ```
-Train: 2929 images | Val: 733 images
-Phase 1: Classifier only (3 epochs)
-  Epoch 1/3 | Train Loss: 1.3436 | Val Loss: 1.1765 | Val QWK: 0.7688
+Train: 2929 imágenes | Val: 733 imágenes
+==================================================
+Fase 1 — Classifier only (3 épocas)
+==================================================
+  Época   1/3 | Train Loss: 1.3436 | Val Loss: 1.1765 | Val QWK: 0.7688 ✓
   ...
-Phase 2: Full fine-tuning (7 epochs)
+==================================================
+Fase 2 — Fine-tuning completo (7 épocas)
+==================================================
   ...
-  Epoch 7/7 | Train Loss: 1.0578 | Val Loss: 0.8715 | Val QWK: 0.8209
-Best val QWK: 0.8209
+  Época   7/7 | Train Loss: 1.0578 | Val Loss: 0.8715 | Val QWK: 0.8209 ✓
+
+Mejor QWK de validación: 0.8209
 ```
 
 The best checkpoint is saved to `checkpoints/best_model.pt`.
@@ -245,7 +250,7 @@ Tests cover all modules including preprocessing pipeline behavior, augmentation 
 
 **Why CLAHE in LAB colorspace and not RGB**: applying CLAHE directly to RGB channels independently would shift the hue of lesions. Yellow exudates and red hemorrhages have diagnostic meaning: their color should not be altered by preprocessing. Operating only on the L (luminance) channel improves contrast without touching color information.
 
-**Why weighted sampler and weighted loss together**: they address the class imbalance problem at different points. The sampler controls exposure frequency: the model sees rare classes more often. The loss controls gradient magnitude: mistakes on rare classes generate larger updates. One without the other leaves a residual imbalance.
+**Why weighted CrossEntropyLoss**: with a heavily imbalanced dataset, standard cross-entropy treats every mistake equally. Weighting by inverse class frequency forces the optimizer to prioritize rare grades: a mistake on grade 3 (193 images) generates a proportionally larger gradient than a mistake on grade 0 (1,805 images).
 
 **Why two-phase training**: if you unfreeze the full backbone immediately with a high learning rate, the large gradients from the randomly initialized head will corrupt the ImageNet weights in the first few batches. Phase 1 trains only the head until it produces a useful signal, then Phase 2 fine-tunes the full network with a conservative learning rate.
 

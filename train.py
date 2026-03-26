@@ -12,7 +12,6 @@ Flags: --csv, --images-dir, --val-split (default 0.2), --seed (default 0)
 import argparse
 import pandas as pd
 from pathlib import Path
-from dataclasses import replace
 from sklearn.model_selection import train_test_split
 
 from dataset import RetinaDataset, DatasetConfig
