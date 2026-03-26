@@ -169,14 +169,10 @@ Training output:
 
 ```
 Train: 2929 imágenes | Val: 733 imágenes
-==================================================
 Fase 1 — Classifier only (3 épocas)
-==================================================
   Época   1/3 | Train Loss: 1.3436 | Val Loss: 1.1765 | Val QWK: 0.7688 ✓
   ...
-==================================================
 Fase 2 — Fine-tuning completo (7 épocas)
-==================================================
   ...
   Época   7/7 | Train Loss: 1.0578 | Val Loss: 0.8715 | Val QWK: 0.8209 ✓
 
@@ -211,9 +207,12 @@ Response:
   "clinical_note": "Severe diabetic retinopathy. Urgent referral required.",
   "confidence": 0.61,
   "probabilities": [0.02, 0.04, 0.12, 0.61, 0.21],
-  "referral_recommended": true
+  "referral_recommended": true,
+  "low_confidence_warning": null
 }
 ```
+
+When confidence is below 60%, `low_confidence_warning` contains a message indicating the image may have quality issues and manual review is recommended.
 
 ### Health check
 

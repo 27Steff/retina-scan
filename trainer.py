@@ -88,9 +88,7 @@ class RetinaTrainer:
         class_weights = self._compute_class_weights(train_dataset)
 
         if self.config.phase1_epochs > 0:
-            print(f"\n{'='*50}")
             print(f"Fase 1 — Classifier only ({self.config.phase1_epochs} épocas)")
-            print(f"{'='*50}")
             self._run_phase(
                 model, train_dataset, val_dataset,
                 phase=1, class_weights=class_weights, history=history,
@@ -98,9 +96,7 @@ class RetinaTrainer:
             model.unfreeze_backbone()
 
         if self.config.phase2_epochs > 0:
-            print(f"\n{'='*50}")
             print(f"Fase 2 — Fine-tuning completo ({self.config.phase2_epochs} épocas)")
-            print(f"{'='*50}")
             self._run_phase(
                 model, train_dataset, val_dataset,
                 phase=2, class_weights=class_weights, history=history,
@@ -285,7 +281,7 @@ def make_trainer(kind: str, **kwargs) -> RetinaTrainer:
             phase1_epochs=5,
             phase2_epochs=15,
             batch_size=8,
-            num_workers=2,
+            num_workers=0,
             device="mps",
             patience=5,
         ),

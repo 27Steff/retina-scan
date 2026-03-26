@@ -38,6 +38,14 @@ _CLASS_CLINICAL = [
 ]
 
 
+_LOW_CONFIDENCE_THRESHOLD = 0.60
+_LOW_CONFIDENCE_WARNING = (
+    "Low prediction confidence. The image may have quality issues "
+    "(blur, poor illumination, or incomplete field of view). "
+    "Manual review by an ophthalmologist is strongly recommended."
+)
+
+
 class PredictionResponse(BaseModel):
     """Respuesta del endpoint /predict."""
     predicted_class: int
@@ -46,6 +54,7 @@ class PredictionResponse(BaseModel):
     confidence: float
     probabilities: List[float]
     referral_recommended: bool
+    low_confidence_warning: Optional[str] = None
 
 
 class HealthResponse(BaseModel):
@@ -133,13 +142,17 @@ def create_app(
         probs = torch.softmax(logits, dim=1).squeeze().cpu().numpy()
         predicted = int(probs.argmax())
 
+        confidence = float(probs[predicted])
         return PredictionResponse(
             predicted_class=predicted,
             class_name=_CLASS_NAMES[predicted],
             clinical_note=_CLASS_CLINICAL[predicted],
-            confidence=float(probs[predicted]),
+            confidence=confidence,
             probabilities=[float(p) for p in probs],
             referral_recommended=predicted >= 2,
+            low_confidence_warning=(
+                _LOW_CONFIDENCE_WARNING if confidence < _LOW_CONFIDENCE_THRESHOLD else None
+            ),
         )
 
     @app.post("/explain")
