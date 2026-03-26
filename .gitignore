@@ -1,0 +1,30 @@
+# Dataset (download from Kaggle)
+data/
+
+# Model weights
+sam_vit_b_01ec64.pth
+checkpoints/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+
+# Generated during training/testing
+data/split_*.csv
+test_images/
+
+# macOS
+.DS_Store
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE
+.vscode/
+
+# Internal
+.claude/
+CONTEXT.md
+Retina-scan.md

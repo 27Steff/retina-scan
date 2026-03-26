@@ -1,0 +1,20 @@
+# Core
+torch==2.11.0
+torchvision
+opencv-python==4.13.0.92
+numpy==2.4.3
+pandas==3.0.1
+albumentations==2.0.8
+
+scikit-learn
+fastapi
+uvicorn
+python-multipart
+httpx
+segment-anything @ git+https://github.com/facebookresearch/segment-anything.git
+jupyter
+ipykernel
+matplotlib
+
+# Dev
+pytest
