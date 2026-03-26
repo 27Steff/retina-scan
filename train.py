@@ -1,12 +1,11 @@
 """
 train.py
-Script de entrenamiento para CPU local usando CPUTrainerConfig.
+Script de entrenamiento con soporte para CPU y Apple Silicon (MPS).
 
 Uso:
-    python train.py
-    python train.py --val-split 0.15 --seed 42
-
-Flags: --csv, --images-dir, --val-split (default 0.2), --seed (default 0)
+    python train.py                         # CPU, B0, 224px
+    python train.py --preset mps            # Apple Silicon, B4, 380px (~4-8h)
+    python train.py --preset mps --val-split 0.15
 """
 
 import argparse
@@ -26,6 +25,12 @@ def parse_args():
     p.add_argument("--images-dir", default="data/train_images")
     p.add_argument("--val-split",  type=float, default=0.2)
     p.add_argument("--seed",       type=int,   default=0)
+    p.add_argument("--preset",     default="cpu", choices=["cpu", "mps", "fast", "standard"],
+                   help="Trainer preset: cpu (B0/224px), mps (B4/380px on Apple Silicon)")
+    p.add_argument("--model",      default=None,
+                   help="Override model backbone, e.g. efficientnet_b4")
+    p.add_argument("--image-size", type=int, default=None,
+                   help="Override image size")
     return p.parse_args()
 
 
@@ -48,26 +53,37 @@ def main():
     print(f"Train: {len(train_df)} imágenes | Val: {len(val_df)} imágenes")
     print(f"Distribución train:\n{train_df['diagnosis'].value_counts().sort_index().to_string()}\n")
 
-    # image_size=224 para ser compatible con CPUTrainerConfig (efficientnet_b0)
-    preprocess_224 = PreprocessConfig(image_size=224)
+    trainer = make_trainer(args.preset)
 
+    # Preset defaults por modelo
+    _model_defaults = {
+        "cpu": ("efficientnet_b0", 224),
+        "mps": ("efficientnet_b4", 380),
+        "fast": ("efficientnet_b0", 224),
+        "standard": ("efficientnet_b4", 380),
+    }
+    default_model, default_size = _model_defaults[args.preset]
+    model_type = args.model or default_model
+    image_size = args.image_size or default_size
+
+    preprocess_cfg = PreprocessConfig(image_size=image_size)
     train_ds = RetinaDataset(
-        config=DatasetConfig(augment=True, preprocess=preprocess_224),
+        config=DatasetConfig(augment=True, preprocess=preprocess_cfg),
         csv_path=train_csv,
         images_dir=args.images_dir,
     )
     val_ds = RetinaDataset(
-        config=DatasetConfig(augment=False, preprocess=preprocess_224),
+        config=DatasetConfig(augment=False, preprocess=preprocess_cfg),
         csv_path=val_csv,
         images_dir=args.images_dir,
     )
 
-    trainer = make_trainer("cpu")
-    model   = make_model(trainer.config.model_type)
+    model = make_model(model_type)
 
+    print(f"Preset      : {args.preset}")
     print(f"Dispositivo : {trainer.config.device}")
-    print(f"Modelo      : {trainer.config.model_type}")
-    print(f"Image size  : {trainer.config.image_size}")
+    print(f"Modelo      : {model_type}")
+    print(f"Image size  : {image_size}")
     print(f"Batch size  : {trainer.config.batch_size}")
     print(f"Épocas      : phase1={trainer.config.phase1_epochs} + phase2={trainer.config.phase2_epochs}")
     print(f"Patience    : {trainer.config.patience}\n")

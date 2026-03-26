@@ -281,6 +281,14 @@ def make_trainer(kind: str, **kwargs) -> RetinaTrainer:
             batch_size=8,
         ),
         "cpu": CPUTrainerConfig(),
+        "mps": TrainerConfig(
+            phase1_epochs=5,
+            phase2_epochs=15,
+            batch_size=8,
+            num_workers=2,
+            device="mps",
+            patience=5,
+        ),
     }
 
     if kind not in presets:
