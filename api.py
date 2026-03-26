@@ -13,6 +13,7 @@ Decisiones de diseño:
 
 import io
 import cv2
+from pathlib import Path
 import numpy as np
 import torch
 from contextlib import asynccontextmanager
@@ -23,7 +24,7 @@ from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.responses import Response
 from pydantic import BaseModel
 
-from explainability import GradCAM, GradCAMConfig
+from explainability import GradCAM
 from model import RetinaModel, ModelConfig, make_model
 from preprocessing import RetinaPreprocessor, PreprocessConfig
 
@@ -169,19 +170,14 @@ app = create_app(APIConfig(
 
 
 def _load_model(config: APIConfig) -> RetinaModel:
-    """
-    Carga desde checkpoint si existe; si no, inicializa sin pesos preentrenados.
-    Sin checkpoint se evita la descarga de ImageNet para no bloquear el arranque del servidor.
-    """
-    if config.checkpoint:
+    """Carga desde checkpoint si existe; si no, inicializa sin pesos preentrenados."""
+    if config.checkpoint and Path(config.checkpoint).exists():
         model = make_model(config.model_type)
-        checkpoint = torch.load(
-            config.checkpoint,
-            map_location=config.device,
-            weights_only=False,
-        )
-        model.load_state_dict(checkpoint["model_state_dict"])
+        ckpt = torch.load(config.checkpoint, map_location=config.device, weights_only=False)
+        model.load_state_dict(ckpt["model_state_dict"])
     else:
+        if config.checkpoint:
+            print(f"Warning: checkpoint '{config.checkpoint}' not found. Run train.py first.")
         model = make_model(config.model_type, pretrained=False)
 
     return model

@@ -53,7 +53,7 @@ The project is organized as a modular Python package. Each module has a single r
 retina-scan/
 ├── preprocessing.py      # CLAHE in LAB colorspace, crop, resize, normalize
 ├── augmentation.py       # Medical-safe augmentation with albumentations
-├── dataset.py            # APTOSDataset, stratified splits, weighted sampler
+├── dataset.py            # RetinaDataset, stratified splits, class weight computation
 ├── model.py              # EfficientNet-B0/B4 with custom classification head
 ├── trainer.py            # Two-phase training loop, early stopping, checkpointing
 ├── metrics.py            # Quadratic weighted kappa, confusion matrix, per-class sensitivity
@@ -80,8 +80,7 @@ Raw retinal images arrive with uneven illumination (bright center, dark edges) a
 
 The APTOS dataset is heavily imbalanced: grade 0 (healthy) has 1,805 images while grade 3 (severe) has only 193. Two complementary mechanisms address this:
 
-- **WeightedRandomSampler**: each image is assigned a sampling weight inversely proportional to its class frequency. The model sees all grades at approximately equal frequency during training
-- **Weighted CrossEntropyLoss**: errors on rare classes generate larger gradients. The model learns more from a mistake on grade 3 than from a mistake on grade 0
+- **Weighted CrossEntropyLoss**: each class is assigned a weight inversely proportional to its frequency. Errors on rare classes (grade 3: 193 images) generate larger gradients than errors on common classes (grade 0: 1,805 images)
 
 ### Transfer learning strategy
 

@@ -147,7 +147,6 @@ class RetinaTrainer:
         )
 
         epochs_no_improve = 0
-        phase_best_kappa = -1.0
 
         for epoch in range(1, epochs + 1):
             train_loss = self._train_epoch(model, train_loader, optimizer, criterion, device)
@@ -161,7 +160,6 @@ class RetinaTrainer:
             improved = val_kappa > self._best_kappa
             if improved:
                 self._best_kappa = val_kappa
-                phase_best_kappa = val_kappa
                 epochs_no_improve = 0
                 if self.config.save_best:
                     self._save_checkpoint(model, epoch, val_kappa)
