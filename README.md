@@ -131,6 +131,13 @@ The two-step pipeline: Grad-CAM for localization, SAM for segmentation: avoids t
 pip install -r requirements.txt
 ```
 
+### Pretrained model
+
+```bash
+mkdir -p checkpoints
+wget https://huggingface.co/SteffanyR/retina-scan/resolve/main/best_model.pt -O checkpoints/best_model.pt
+```
+
 ### SAM weights
 
 ```bash
